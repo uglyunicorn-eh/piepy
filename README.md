@@ -23,6 +23,4 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy src
 uv run pytest  # collects coverage, outputs lcov.info; requires 100% coverage
-
-# Coverage is uploaded to Codecov on CI. Add CODECOV_TOKEN to GitHub secrets.
 ```
