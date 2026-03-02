@@ -1,5 +1,7 @@
 # πpy
 
+[![codecov](https://codecov.io/gh/uglyunicorn-eh/piepy/graph/badge.svg?token=lxB7bhdFhM)](https://codecov.io/gh/uglyunicorn-eh/piepy)
+
 Schema-validated envelopes using HPKE in Python now.
 
 ## Installation
