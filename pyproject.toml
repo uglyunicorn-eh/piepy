@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "piepy"
-version = "0.0.1"
+version = "0.7.1"
 description = "πpy - aSchema-validated envelopes using HPKE in Python now"
 readme = "README.md"
 license = { text = "MIT" }
