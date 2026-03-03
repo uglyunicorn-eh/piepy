@@ -3,7 +3,7 @@ from typing import Annotated, Any, cast
 from pydantic import GetCoreSchemaHandler, TypeAdapter
 from pydantic_core import CoreSchema, core_schema
 
-from piepy.core import EnvelopeContext, EnvelopeData
+from piepy.core import DecipherContext, EnvelopeContext, EnvelopeData, RetranslateContext
 
 
 class EnvelopeField:
@@ -17,24 +17,26 @@ class EnvelopeField:
         inner_adapter = TypeAdapter[Any](inner_type)
         envelope_adapter = TypeAdapter[EnvelopeData](EnvelopeData)
 
-        def validate(value: Any, info) -> Any:
-            ctx = cast(EnvelopeContext, (info.context or {}).get("~piepy")) if info else None
+        def validate(value: Any, info: Any) -> Any:
+            ctx = cast(EnvelopeContext, (info.context or {}).get("piepy")) if info else None
 
             if ctx is None:
                 return inner_adapter.validate_python(value)
 
             if "open" in ctx and "seal" in ctx:
+                rctx = cast(RetranslateContext, ctx)
                 env = envelope_adapter.validate_python(value)
-                opened = ctx.get("open")(inner_type, env)
-                return ctx.get("seal")(inner_type, opened)
+                opened = rctx["open"](inner_type, env)
+                return rctx["seal"](inner_type, opened)
 
             if "open" in ctx:
+                dctx = cast(DecipherContext, ctx)
                 env = envelope_adapter.validate_python(value)
-                return ctx.get("open")(inner_type, env)
+                return dctx["open"](inner_type, env)
 
             if "seal" in ctx:
                 validated = inner_adapter.validate_python(value)
-                return ctx.get("seal")(inner_type, validated)
+                return ctx["seal"](inner_type, validated)
 
             return envelope_adapter.validate_python(value)
 
@@ -44,5 +46,5 @@ class EnvelopeField:
 class Envelope:
     """Generic envelope marker: Envelope[Identity] marks a field as sealable."""
 
-    def __class_getitem__(cls, inner_type: type):
+    def __class_getitem__(cls, inner_type: type) -> Any:
         return Annotated[Any, EnvelopeField(inner_type)]

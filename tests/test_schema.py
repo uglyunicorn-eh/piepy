@@ -50,7 +50,7 @@ def test_envelope_field_no_context_invalid_value_raises() -> None:
 
 def test_envelope_field_context_without_open_or_seal_validates_as_envelope() -> None:
     """With context that has neither open nor seal, value is validated as EnvelopeData."""
-    ctx = {"~piepy": {}}
+    ctx = {"piepy": {}}
     adapter = TypeAdapter(Envelope[Payload])
     result = adapter.validate_python({"ct": "YQ", "enc": "Yg"}, context=ctx)
     assert result == {"ct": "YQ", "enc": "Yg"}

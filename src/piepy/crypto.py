@@ -1,13 +1,13 @@
-from typing import Any, TypedDict
+from typing import Any, TypedDict, cast
 
 from pydantic import BaseModel
-from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
+from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKeyInterface
 
 from piepy.core import EnvelopeContext, EnvelopeData
 from piepy.utils import base64url_to_bytes, bytes_to_base64url
 
 
-def create_cipher_suite():
+def create_cipher_suite() -> CipherSuite:
     """
     Creates a new cipher suite.
 
@@ -17,13 +17,13 @@ def create_cipher_suite():
     return CipherSuite.new(KEMId.DHKEM_P256_HKDF_SHA256, KDFId.HKDF_SHA256, AEADId.AES128_GCM)
 
 
-def seal_envelope(schema: BaseModel, data: Any, public_key: KEMKey) -> EnvelopeData:
+def seal_envelope(schema: type[BaseModel], data: Any, public_key: KEMKeyInterface) -> EnvelopeData:
     """
     Seals data into an envelope.
 
     Args:
         schema: The schema to validate the data against.
-        data: The data to seal.
+        data: Raw data (e.g. dict) to validate against the schema and seal.
         public_key: The public key to use for the envelope.
 
     Returns:
@@ -32,7 +32,8 @@ def seal_envelope(schema: BaseModel, data: Any, public_key: KEMKey) -> EnvelopeD
     Raises:
         ValidationError: If the data does not match the schema.
     """
-    buffer = schema.model_dump_json(data).encode("utf-8")
+    validated = schema.model_validate(data)
+    buffer = validated.model_dump_json().encode("utf-8")
 
     suite = create_cipher_suite()
     enc, sender = suite.create_sender_context(public_key)
@@ -44,7 +45,7 @@ def seal_envelope(schema: BaseModel, data: Any, public_key: KEMKey) -> EnvelopeD
     }
 
 
-def open_envelope(schema: BaseModel, envelope: EnvelopeData, private_key: KEMKey) -> Any:
+def open_envelope(schema: type[BaseModel], envelope: EnvelopeData, private_key: KEMKeyInterface) -> Any:
     """
     Opens an envelope and validates the data against the schema.
 
@@ -85,29 +86,47 @@ class NoOpts(TypedDict):
     pass
 
 
-def envelope_context(opts: InOutOpts | InOpts | OutOpts | NoOpts | None = None) -> EnvelopeContext:
-    def context():
+class PydanticContext(TypedDict):
+    piepy: EnvelopeContext | None
+
+
+def envelope_context(
+    opts: InOutOpts | InOpts | OutOpts | NoOpts | None = None,
+) -> PydanticContext:
+    def context() -> EnvelopeContext | None:
         if opts is None:
             return None
 
         if "private_key" in opts and "public_key" in opts:
-            return {
-                "open": lambda schema, envelope: open_envelope(schema, envelope, opts["private_key"]),
-                "seal": lambda schema, data: seal_envelope(schema, data, opts["public_key"]),
-            }
+            inout = cast(InOutOpts, opts)
+            return cast(
+                EnvelopeContext,
+                {
+                    "open": lambda schema, envelope: open_envelope(schema, envelope, inout["private_key"]),
+                    "seal": lambda schema, data: seal_envelope(schema, data, inout["public_key"]),
+                },
+            )
 
         if "private_key" in opts:
-            return {
-                "open": lambda schema, envelope: open_envelope(schema, envelope, opts["private_key"]),
-            }
+            in_opts = cast(InOpts, opts)
+            return cast(
+                EnvelopeContext,
+                {
+                    "open": lambda schema, envelope: open_envelope(schema, envelope, in_opts["private_key"]),
+                },
+            )
 
         if "public_key" in opts:
-            return {
-                "seal": lambda schema, data: seal_envelope(schema, data, opts["public_key"]),
-            }
+            out_opts = cast(OutOpts, opts)
+            return cast(
+                EnvelopeContext,
+                {
+                    "seal": lambda schema, data: seal_envelope(schema, data, out_opts["public_key"]),
+                },
+            )
 
         return None
 
     return {
-        "~piepy": context(),
+        "piepy": context(),
     }

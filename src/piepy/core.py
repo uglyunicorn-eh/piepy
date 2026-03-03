@@ -25,7 +25,7 @@ class CipherContext(TypedDict):
         seal: A function that seals data into an envelope.
     """
 
-    seal: Callable[[BaseModel, Any], EnvelopeData]
+    seal: Callable[[type[BaseModel], Any], EnvelopeData]
 
 
 class DecipherContext(TypedDict):
@@ -36,7 +36,7 @@ class DecipherContext(TypedDict):
         open: A function that opens an envelope and returns the data.
     """
 
-    open: Callable[[BaseModel, EnvelopeData], Any]
+    open: Callable[[type[BaseModel], EnvelopeData], Any]
 
 
 class RetranslateContext(TypedDict):
@@ -48,8 +48,8 @@ class RetranslateContext(TypedDict):
         seal: A function that seals data into an envelope.
     """
 
-    open: Callable[[BaseModel, EnvelopeData], Any]
-    seal: Callable[[BaseModel, Any], EnvelopeData]
+    open: Callable[[type[BaseModel], EnvelopeData], Any]
+    seal: Callable[[type[BaseModel], Any], EnvelopeData]
 
 
 type EnvelopeContext = CipherContext | DecipherContext | RetranslateContext
