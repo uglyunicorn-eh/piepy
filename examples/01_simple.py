@@ -1,12 +1,16 @@
 from pydantic import BaseModel
-from piepy import create_cipher_suite, envelope_context, Envelope
+
+from piepy import Envelope, create_cipher_suite, envelope_context
+
 
 class Identity(BaseModel):
     name: str
     email: str
 
+
 class Payload(BaseModel):
     identity: Envelope[Identity]
+
 
 suite = create_cipher_suite()
 key_pair = suite.kem.derive_key_pair(b"your-secret-key-material")
