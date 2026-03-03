@@ -37,6 +37,7 @@ def test_seal_envelope_returns_ct_and_enc(key_pair) -> None:
     assert isinstance(envelope["ct"], str)
     assert isinstance(envelope["enc"], str)
 
+
 def test_seal_and_open_roundtrip(key_pair) -> None:
     """Data sealed with public key can be opened with private key."""
     data = Payload(message="hello", n=42)
@@ -129,10 +130,12 @@ def test_envelope_context_private_key_only_has_open(key_pair) -> None:
 
 def test_envelope_context_both_keys_has_seal_and_open(key_pair) -> None:
     """envelope_context with both keys provides seal and open; roundtrip works."""
-    ctx = envelope_context({
-        "private_key": key_pair.private_key,
-        "public_key": key_pair.public_key,
-    })
+    ctx = envelope_context(
+        {
+            "private_key": key_pair.private_key,
+            "public_key": key_pair.public_key,
+        }
+    )
     piepy = ctx["~piepy"]
     assert piepy is not None
     assert "seal" in piepy

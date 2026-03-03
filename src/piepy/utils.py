@@ -9,4 +9,4 @@ def bytes_to_base64url(b: bytes) -> str:
 def base64url_to_bytes(s: str) -> bytes:
     """Decode base64url (RFC 4648) string to bytes."""
     padding = (4 - len(s) % 4) % 4
-    return urlsafe_b64decode(f"{s}{"=" * padding}")
+    return urlsafe_b64decode(f"{s}{'=' * padding}")

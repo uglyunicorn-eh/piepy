@@ -12,9 +12,7 @@ class EnvelopeField:
     def __init__(self, inner_type: type):
         self.inner_type = inner_type
 
-    def __get_pydantic_core_schema__(
-        self, source_type: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
+    def __get_pydantic_core_schema__(self, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
         inner_type = self.inner_type
         inner_adapter = TypeAdapter[Any](inner_type)
         envelope_adapter = TypeAdapter[EnvelopeData](EnvelopeData)

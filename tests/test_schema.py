@@ -91,10 +91,12 @@ def test_envelope_field_open_context_opens_envelope(key_pair) -> None:
 def test_envelope_field_both_context_envelope_opens_then_reseals(key_pair) -> None:
     """With both open and seal, envelope is opened then re-sealed (retranslate)."""
     envelope = seal_envelope(Payload, Payload(message="retranslate", n=0), key_pair.public_key)
-    ctx = envelope_context({
-        "private_key": key_pair.private_key,
-        "public_key": key_pair.public_key,
-    })
+    ctx = envelope_context(
+        {
+            "private_key": key_pair.private_key,
+            "public_key": key_pair.public_key,
+        }
+    )
     adapter = TypeAdapter(Envelope[Payload])
     result = adapter.validate_python(envelope, context=ctx)
     assert isinstance(result, dict)
@@ -106,6 +108,7 @@ def test_envelope_field_both_context_envelope_opens_then_reseals(key_pair) -> No
 
 
 # --- Pre-sealed Identity envelope (decrypt via model) ---
+
 
 def test_decrypt_encrypted_identity_with_schema(key_pair) -> None:
     """Decrypt the pre-sealed Identity envelope via model definition; assert exact plaintext."""
@@ -135,6 +138,7 @@ def test_decrypt_encrypted_identity_with_schema(key_pair) -> None:
 
 def test_user_profile_seal_open_passthrough(key_pair) -> None:
     """UserProfile with Sealed[Identity] and Sealed[str]: seal (encrypt), open (decrypt), no context (passthrough)."""
+
     class Identity(BaseModel):
         name: str
         email: str

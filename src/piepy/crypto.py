@@ -8,18 +8,17 @@ from piepy.utils import base64url_to_bytes, bytes_to_base64url
 
 
 def create_cipher_suite():
-    '''
+    """
     Creates a new cipher suite.
 
     Returns:
         A new cipher suite.
-    '''
-    return CipherSuite.new(
-        KEMId.DHKEM_P256_HKDF_SHA256, KDFId.HKDF_SHA256, AEADId.AES128_GCM
-    )
+    """
+    return CipherSuite.new(KEMId.DHKEM_P256_HKDF_SHA256, KDFId.HKDF_SHA256, AEADId.AES128_GCM)
+
 
 def seal_envelope(schema: BaseModel, data: Any, public_key: KEMKey) -> EnvelopeData:
-    '''
+    """
     Seals data into an envelope.
 
     Args:
@@ -32,7 +31,7 @@ def seal_envelope(schema: BaseModel, data: Any, public_key: KEMKey) -> EnvelopeD
 
     Raises:
         ValidationError: If the data does not match the schema.
-    '''
+    """
     buffer = schema.model_dump_json(data).encode("utf-8")
 
     suite = create_cipher_suite()
@@ -44,8 +43,9 @@ def seal_envelope(schema: BaseModel, data: Any, public_key: KEMKey) -> EnvelopeD
         "enc": bytes_to_base64url(enc),
     }
 
+
 def open_envelope(schema: BaseModel, envelope: EnvelopeData, private_key: KEMKey) -> Any:
-    '''
+    """
     Opens an envelope and validates the data against the schema.
 
     Args:
@@ -58,7 +58,7 @@ def open_envelope(schema: BaseModel, envelope: EnvelopeData, private_key: KEMKey
 
     Raises:
         ValidationError: If the data does not match the schema.
-    '''
+    """
     ct = base64url_to_bytes(envelope["ct"])
     enc = base64url_to_bytes(envelope["enc"])
 
