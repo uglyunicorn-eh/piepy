@@ -1,4 +1,5 @@
-from typing import Any, Callable, TypedDict
+from collections.abc import Callable
+from typing import Any, TypedDict
 
 from pydantic import BaseModel
 

@@ -1,6 +1,7 @@
 from typing import Any, TypedDict
-from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
+
 from pydantic import BaseModel
+from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
 
 from piepy.core import EnvelopeContext, EnvelopeData
 from piepy.utils import base64url_to_bytes, bytes_to_base64url
@@ -33,11 +34,11 @@ def seal_envelope(schema: BaseModel, data: Any, public_key: KEMKey) -> EnvelopeD
         ValidationError: If the data does not match the schema.
     '''
     buffer = schema.model_dump_json(data).encode("utf-8")
-    
+
     suite = create_cipher_suite()
     enc, sender = suite.create_sender_context(public_key)
     ct = sender.seal(buffer)
-    
+
     return {
         "ct": bytes_to_base64url(ct),
         "enc": bytes_to_base64url(enc),
@@ -60,11 +61,11 @@ def open_envelope(schema: BaseModel, envelope: EnvelopeData, private_key: KEMKey
     '''
     ct = base64url_to_bytes(envelope["ct"])
     enc = base64url_to_bytes(envelope["enc"])
-    
+
     suite = create_cipher_suite()
     recipient = suite.create_recipient_context(enc, private_key)
     buffer = recipient.open(ct)
-    
+
     return schema.model_validate_json(buffer.decode("utf-8"))
 
 
@@ -110,4 +111,3 @@ def envelope_context(opts: InOutOpts | InOpts | OutOpts | NoOpts | None = None) 
     return {
         "~piepy": context(),
     }
-    

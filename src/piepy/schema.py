@@ -1,5 +1,6 @@
 from typing import Annotated, Any, cast
-from pydantic import TypeAdapter, GetCoreSchemaHandler
+
+from pydantic import GetCoreSchemaHandler, TypeAdapter
 from pydantic_core import CoreSchema, core_schema
 
 from piepy.core import EnvelopeContext, EnvelopeData
