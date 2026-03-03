@@ -6,9 +6,13 @@ Schema-validated envelopes using HPKE in Python now.
 
 ## Installation
 
+Install from a [GitHub Release](https://github.com/uglyunicorn-eh/piepy/releases) (wheel or sdist):
+
 ```bash
-pip install piepy
+pip install https://github.com/uglyunicorn-eh/piepy/releases/download/v0.7.1/piepy-0.7.1-py3-none-any.whl
 ```
+
+Replace the version in the URL with the release you want.
 
 ## Usage
 
@@ -43,6 +47,10 @@ assert opened.identity == Identity(name="Alice", email="alice@example.com")
 ```
 
 Without context, `Envelope[T]` fields validate as plain `T` (useful for tests or when encryption is optional).
+
+## Releasing
+
+Merging a PR into `main` triggers a GitHub Action that builds the package and creates a [GitHub Release](https://github.com/uglyunicorn-eh/piepy/releases) with tag `v{VERSION}` and attached wheel/sdist. Bump the `version` in [pyproject.toml](pyproject.toml) in your PR before merging; the workflow will skip if the tag for that version already exists.
 
 ## Development
 
