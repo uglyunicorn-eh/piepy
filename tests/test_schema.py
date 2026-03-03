@@ -103,3 +103,67 @@ def test_envelope_field_both_context_envelope_opens_then_reseals(key_pair) -> No
     opened = open_envelope(Payload, result, key_pair.private_key)
     assert opened.message == "retranslate"
     assert opened.n == 0
+
+
+# --- Pre-sealed Identity envelope (decrypt via model) ---
+
+def test_decrypt_encrypted_identity_with_schema(key_pair) -> None:
+    """Decrypt the pre-sealed Identity envelope via model definition; assert exact plaintext."""
+
+    class Identity(BaseModel):
+        name: str
+        email: str
+
+    class PayloadWithIdentity(BaseModel):
+        identity: Envelope[Identity]
+
+    decipher_ctx = envelope_context({"private_key": key_pair.private_key})
+    payload = PayloadWithIdentity.model_validate(
+        {
+            "identity": {
+                "ct": "aVihXqC2c7z1M1RPA7OohhV8P8u_Cpz8JyhcA9M4_HAjGneSSwYj6nR1auoGzgU7J4Uq6jCk1LHz1KM2HcyQTJct",
+                "enc": "BBS9xqkLD5hC0y663NL3INhtC64s3AuwsrIrSjDvitLAGb-EDd-9YRdFa4zJSVYo9P_o5JB2PhUBlY4SjJ3NwNw",
+            },
+        },
+        context=decipher_ctx,
+    )
+    assert payload.identity == Identity(name="John Doe", email="john.doe@example.com")
+
+
+# --- UserProfile with Sealed[Identity] and Sealed[str] (via RootModel[str]) ---
+
+
+def test_user_profile_seal_open_passthrough(key_pair) -> None:
+    """UserProfile with Sealed[Identity] and Sealed[str]: seal (encrypt), open (decrypt), no context (passthrough)."""
+    class Identity(BaseModel):
+        name: str
+        email: str
+
+    class UserProfile(BaseModel):
+        identity: Envelope[Identity]
+        timezone: str
+
+    cipher_ctx = envelope_context({"public_key": key_pair.public_key})
+    decipher_ctx = envelope_context({"private_key": key_pair.private_key})
+
+    # Seal (encrypt)
+    sealed = UserProfile.model_validate(
+        {"identity": {"name": "Alice", "email": "a@b.com"}, "timezone": "UTC"},
+        context=cipher_ctx,
+    )
+    assert "ct" in sealed.identity and "enc" in sealed.identity
+
+    # Open (decrypt)
+    opened = UserProfile.model_validate(
+        sealed.model_dump(),
+        context=decipher_ctx,
+    )
+    assert opened.identity == Identity(name="Alice", email="a@b.com")
+    assert opened.timezone == "UTC"
+
+    # No context → passthrough (useful in tests)
+    plain = UserProfile.model_validate(
+        {"identity": {"name": "Alice", "email": "a@b.com"}, "timezone": "UTC"},
+    )
+    assert plain.identity == Identity(name="Alice", email="a@b.com")
+    assert plain.timezone == "UTC"

@@ -1,7 +1,4 @@
 """Tests for piepy.utils."""
-
-import pytest
-
 from piepy.utils import bytes_to_base64url
 
 
