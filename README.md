@@ -6,13 +6,13 @@ Schema-validated envelopes using HPKE in Python now.
 
 ## Installation
 
-Install from a [GitHub Release](https://github.com/uglyunicorn-eh/piepy/releases) (wheel or sdist):
+Install from the git repo:
 
 ```bash
-pip install https://github.com/uglyunicorn-eh/piepy/releases/download/v0.7.1/piepy-0.7.1-py3-none-any.whl
+pip install git+https://github.com/uglyunicorn-eh/piepy.git
 ```
 
-Replace the version in the URL with the release you want.
+To install a specific branch or tag, append `@<ref>` (e.g. `@main` or `@v0.7.1`).
 
 ## Usage
 
